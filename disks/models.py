@@ -54,6 +54,14 @@ class DriveModel(QtCore.QAbstractListModel):
 	QtCore.QAbstractListModel.__init__(self, parent)
 	self._drivers = []
 
+    def rowCount(self, parent=QtCore.QModelIndex()):
+        return len(self._drivers)
+
+    def data(self, index, role):
+        if index.isValid() and role == DriveModel.COLUMNS.index('drive'):
+            return self._drivers[index.row()]
+        return None
+
     def populate(self):
 	drivers = {}
 	partitions = {}
@@ -75,11 +83,15 @@ class DriveModel(QtCore.QAbstractListModel):
 		partitions[deviceProperties['PartitionSlave']].append(Partition(deviceProperties))
 		continue
 
-	for partitionDrive in partitions.keys():
-	     for partition in partitions[partitionDrive]:
-		drivers[partitionDrive].addPartition(partition)
+        print drivers
+	print '*' * 80
+	print partitions
 
-	self._drivers = drivers.items()
+	#for partitionDrive in partitions.keys():
+	#     for partition in partitions[partitionDrive]:
+	#	drivers[partitionDrive].addPartition(partition)
+
+	#self._drivers = drivers.items()
 
 
 #if __name__ == '__main__':
