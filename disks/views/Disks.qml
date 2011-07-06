@@ -48,6 +48,7 @@ Rectangle {
         }
     }
 
+    /**
     ListModel {
         id: deviceModel
 
@@ -109,7 +110,26 @@ Rectangle {
             }
         }
     }
+    **/
 
+    Component {
+        id: driveDelegate
+
+            Text {
+                //id: deviceName
+                text: model.drive.name
+                font.pointSize: 16
+            }
+
+    }
+
+    ListView {
+        anchors.fill: parent
+        model: driveModel
+        delegate: driveDelegate
+    }
+
+    /**
     PathView {
         anchors.fill: parent
         model: deviceModel
@@ -120,4 +140,5 @@ Rectangle {
             PathLine { x: 704; y: 64 }
         }
     }
+    **/
 }
