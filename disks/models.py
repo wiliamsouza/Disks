@@ -82,6 +82,6 @@ class DriveModel(QtCore.QAbstractListModel):
 	self._drivers = drivers.items()
 
 
-if __name__ == '__main__':
-    dm = DriveModel()
-    dm.populate()
+#if __name__ == '__main__':
+#    dm = DriveModel()
+#    dm.populate()
