@@ -8,7 +8,6 @@ from PyQt4 import QtGui, QtCore, QtDeclarative
 from disks.models import DriveModel
 
 
-
 class DisksView(QtDeclarative.QDeclarativeView):
 
     def __init__(self, parent=None):
@@ -20,7 +19,6 @@ class DisksView(QtDeclarative.QDeclarativeView):
         #self.controller = Controller(self)
 
         self.context = self.rootContext()
-
         self.context.setContextProperty('driveModel', self.driveModel)
 
         self.setSource(QtCore.QUrl('disks/views/Disks.qml'))
