@@ -11,14 +11,14 @@ interface = dbus.Interface(proxy, 'org.freedesktop.UDisks')
 class Partition(QtCore.QObject):
 
     def __init__(self, properties, parent=None):
-	QtCore.QObject.__init__(self, parent)
-	self._properties = properties
+        QtCore.QObject.__init__(self, parent)
+        self._properties = properties
 
     def __str__(self):
-	return self._properties['DeviceFile']
+        return str(self._properties['DeviceFile'])
 
     def _getName(self):
-            return self._properties['DeviceFile']
+        return str(self._properties['DeviceFile'])
 
     changed = QtCore.pyqtSignal()
 
@@ -28,18 +28,18 @@ class Partition(QtCore.QObject):
 class Drive(QtCore.QObject):
 
     def __init__(self, properties, parent=None):
-	QtCore.QObject.__init__(self, parent)
-	self._properties = properties
-	self._partition = []
+        QtCore.QObject.__init__(self, parent)
+        self._properties = properties
+        self._partition = []
 
     def __str__(self):
-        return self._properties['DeviceFile']
+        return str(self._properties['DeviceFile'])
 
     def addPartition(self, partition):
-	self._partition.append(partition)
+         self._partition.append(partition)
 
     def _getName(self):
-	return self._properties['DeviceFile']
+         return str(self._properties['DeviceFile'])
 
     changed = QtCore.pyqtSignal()
 
@@ -51,8 +51,9 @@ class DriveModel(QtCore.QAbstractListModel):
     COLUMNS = ('drive',)
 
     def __init__(self, parent=None):
-	QtCore.QAbstractListModel.__init__(self, parent)
-	self._drivers = []
+        QtCore.QAbstractListModel.__init__(self, parent)
+        self._drivers = []
+        self.setRoleNames(dict(enumerate(DriveModel.COLUMNS)))
 
     def rowCount(self, parent=QtCore.QModelIndex()):
         return len(self._drivers)
@@ -63,37 +64,33 @@ class DriveModel(QtCore.QAbstractListModel):
         return None
 
     def populate(self):
-	drivers = {}
-	partitions = {}
+        drivers = {}
+        partitions = {}
 
-	for device in interface.EnumerateDevices():
-	    deviceProxy = bus.get_object('org.freedesktop.UDisks', device)
-	    deviceInterface = dbus.Interface(deviceProxy, 'org.freedesktop.DBus.Properties')
-	    deviceProperties = deviceInterface.GetAll('org.freedesktop.UDisks.Device')
+        for device in interface.EnumerateDevices():
+            deviceProxy = bus.get_object('org.freedesktop.UDisks', device)
+            deviceInterface = dbus.Interface(deviceProxy, 'org.freedesktop.DBus.Properties')
+            deviceProperties = deviceInterface.GetAll('org.freedesktop.UDisks.Device')
 
-	    if deviceProperties['DeviceIsDrive'] == 1:
-		drivers[device] = Drive(deviceProperties)
-		continue
+            if deviceProperties['DeviceIsDrive'] == 1:
+                drivers[str(device)] = Drive(deviceProperties)
+                continue
 
-	    if deviceProperties['DeviceIsPartition'] == 1:
-		try:
-		    partitions[deviceProperties['PartitionSlave']]
-		except KeyError:
-		    partitions[deviceProperties['PartitionSlave']] = []
-		partitions[deviceProperties['PartitionSlave']].append(Partition(deviceProperties))
-		continue
+            if deviceProperties['DeviceIsPartition'] == 1:
+                try:
+                    # Check if partition key alrealy exist
+                    partitions[str(deviceProperties['PartitionSlave'])]
+                except KeyError:
+                    # if not create a empty list to the given key partition
+                    partitions[str(deviceProperties['PartitionSlave'])] = []
+                partitions[str(deviceProperties['PartitionSlave'])].append(Partition(deviceProperties))
+                continue
 
-        print drivers
-	print '*' * 80
-	print partitions
-
-	#for partitionDrive in partitions.keys():
-	#     for partition in partitions[partitionDrive]:
-	#	drivers[partitionDrive].addPartition(partition)
-
-	#self._drivers = drivers.items()
-
-
-#if __name__ == '__main__':
-#    dm = DriveModel()
-#    dm.populate()
+        for (driver_name, driver_klass) in drivers.items():
+            try:
+                for partition in partitions[driver_name]:
+                    driver_klass.addPartition(partition)
+            except KeyError:
+                # A keyError is raised if the given drive don't have partitions
+                pass
+            self._drivers.append(driver_klass)
